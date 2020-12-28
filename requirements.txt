@@ -1,1 +1,2 @@
 streamlit>0.73
+fastai>2

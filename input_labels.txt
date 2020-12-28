@@ -1,4 +1,0 @@
-classes
-Type the different "kinds" (or "classes" in machine-learning-speak) of images you'd like the model to be able to classify. Put each class on its own line. Think of each line as a separate query in an image search bar (such as images.google.com), so try to make sure there isn't any ambiguity in the class/line. E.g., if you type "gothic," you'll get images of both gothic architecture as well as people who resemble members of the Addams family. Instead, you might consider typing "gothic architecture" or "goths."
-num_photos_per_class
-Choose the number of photos per class the model will train on. Higher number = higher model accuracy in general, but also longer download time, more hard drive space used, and longer time to train the model.
