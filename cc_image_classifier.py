@@ -1,4 +1,5 @@
 import json
+import urllib
 import requests
 from pathlib import Path
 
@@ -137,6 +138,19 @@ def train_classifier():
 def run_classifier():
     pass
 
+
+@st.cache(show_spinner=False)
+def get_file_content_as_string(path):
+    """
+    Code copied from:
+    https://github.com/streamlit/demo-self-driving/blob/master/streamlit_app.py#L200
+    """
+    url = (
+        'https://raw.githubusercontent.com/warrenmo/'
+        'cc-image-classifier/main/' + path
+        )
+    response = urllib.request.urlopen(url)
+    return response.read().decode('utf-8')
 
 if __name__ == "__main__":
     main()
