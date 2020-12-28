@@ -39,28 +39,29 @@ def main():
 
 
 def instructions():
-    with open('input_labels.json', 'r') as j:
-        labels = json.load(j)
+    #with open('input_labels.json', 'r') as j:
+    #    labels = json.load(j)
 
-    st.markdown("### Pick the kinds of images you want to classify")
-    classes = st.text_area(
-        labels['classes'],
-        value="dog\ncat\ngothic architecture").split('\n')
-    st.write("Here's an example of valid input!")
-    st.markdown((
-        "![classes_input_example](https://"
-        "raw.githubusercontent.com/warrenmo/"
-        "cc-image-classifier/master/class_input_example.jpg)"
-        ))
+    #st.markdown("### Pick the kinds of images you want to classify")
+    #classes = st.text_area(
+    #    labels['classes'],
+    #    value="dog\ncat\ngothic architecture").split('\n')
+    #st.write("Here's an example of valid input!")
+    #st.markdown((
+    #    "![classes_input_example](https://"
+    #    "raw.githubusercontent.com/warrenmo/"
+    #    "cc-image-classifier/master/class_input_example.jpg)"
+    #    ))
 
-    st.markdown('### Pick the number of photos per class')
-    num_photos_per_class = st.number_input(
-        labels['num_photos_per_class'],
-        min_value=1,
-        max_value=1000,
-        value=200
-        )
-    return classes, num_photos_per_class
+    #st.markdown('### Pick the number of photos per class')
+    #num_photos_per_class = st.number_input(
+    #    labels['num_photos_per_class'],
+    #    min_value=1,
+    #    max_value=1000,
+    #    value=200
+    #    )
+    #return classes, num_photos_per_class
+    pass
 
 
 def download_data():
@@ -70,12 +71,12 @@ def download_data():
 
     # TODO: handle empty lines
     classes = st.text_area(
-        "What images do you want to classify?",
+        "Specify the images you wish to classify here:",
         value="dog\ncat\ngothic architecture"
         )
     classes = classes.split('\n')
     per_class = st.number_input(
-        "How many images per class?",
+        "Specify the number of images per class here:",
         min_value=1,
         max_value=1000,
         value=200
