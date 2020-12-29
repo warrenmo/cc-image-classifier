@@ -1,2 +1,2 @@
 # Classifiers Done Quick
-A web-app for quickly building and training classifiers using transfer learning. Currently working on image classifiers.
+A non-expert/beginner-friendly web-app for quickly building and training classifiers using transfer learning.
