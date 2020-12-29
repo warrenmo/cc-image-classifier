@@ -2,7 +2,6 @@ import requests
 from pathlib import Path
 
 import streamlit as st
-
 from fastai.vision.utils import download_images, verify_images
 
 from .config import IMAGE_DIR
@@ -47,6 +46,7 @@ class DownloadImages:
         self.classes = [c for c in raw_text.split('\n') if c.strip()]
         if len(self.classes) < 2:
             st.error("At least 2 classes must be given.")
+            st.stop()
 
     def _get_nipc(self):
         self.nipc = st.number_input(
