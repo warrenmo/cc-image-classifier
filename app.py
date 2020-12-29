@@ -2,7 +2,7 @@ import json
 import streamlit as st
 
 from cdq import (
-    DownloadImages, run_classifier, train_classifier,
+    DownloadImages, run_classifier, train_image_classifier,
     get_file_content_as_string
 )
 
@@ -22,7 +22,7 @@ def main():
         DownloadImages().download()
     elif app_mode == 'Train the classifier':
         instructions.empty()
-        train_classifier()
+        train_image_classifier()
     elif app_mode == 'Use/download the classifier':
         instructions.empty()
         run_classifier()
