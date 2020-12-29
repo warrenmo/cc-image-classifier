@@ -5,6 +5,7 @@ import streamlit as st
 from fastai.vision.utils import download_images, verify_images
 
 from .config import IMAGE_DIR
+from .utils import preview_images
 
 
 __all__ = ['DownloadImages']
@@ -36,13 +37,16 @@ class DownloadImages:
             self._get_urls()
             self._download_urls()
             self._verify_downloads()
+            preview_images(self.classes)
 
     def _get_classes(self):
         raw_text = st.text_area(
             "Specify the images you wish to classify:",
             value="dog\ncat\ngothic architecture"
             )
-        self.classes = [c for c in raw_text.split('\n') if c.strip()]
+        self.classes = [
+            c.replace(' ', '_') for c in raw_text.split('\n') if c.strip()
+            ]
         if len(self.classes) < 2:
             st.error("At least 2 classes must be given.")
             st.stop()
@@ -104,7 +108,7 @@ class DownloadImages:
         for c, urls in self.url_dict.items():
             with st.spinner(f"Downloading '{c}' images..."):
                 download_images(
-                    self.image_dir/c.replace(' ', '_'), urls=urls
+                    self.image_dir/c, urls=urls
                     )
             st.success(f"Images of '{c}' downloaded successfully!")
 
