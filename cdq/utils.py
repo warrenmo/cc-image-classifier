@@ -2,7 +2,11 @@ import requests
 import streamlit as st
 
 
-__all__ = ['get_file_content_as_string']
+__all__ = ['app_mode_to_title', 'get_file_content_as_string']
+
+
+def app_mode_to_title(app_mode):
+    st.markdown(f"# {app_mode}")
 
 
 @st.cache(show_spinner=False)

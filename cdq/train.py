@@ -10,7 +10,6 @@ __all__ = ['train_image_classifier']
 
 
 def train_image_classifier():
-    st.markdown("# Train the classifier")
     class_paths = list(IMAGE_DIR.iterdir())
     classes = [cp.name for cp in class_paths]
     selected = st.multiselect(

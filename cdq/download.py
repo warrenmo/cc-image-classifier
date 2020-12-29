@@ -26,7 +26,6 @@ class DownloadImages:
         self.image_dir.mkdir(parents=True, exist_ok=True)
 
     def download(self):
-        st.markdown("# Download images")
         self._get_classes()
         self._get_nipc()
 
