@@ -1,13 +1,7 @@
-from . import download
+from . import download, run, train, utils
 from .download import *
-
-from . import run
 from .run import *
-
-from . import train
 from .train import *
-
-from . import utils
 from .utils import *
 
 
