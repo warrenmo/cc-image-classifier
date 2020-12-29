@@ -1,203 +1,143 @@
-import json
-import urllib
 import requests
 from pathlib import Path
-
-import numpy as np
-import pandas as pd
 
 import streamlit as st
 
 from fastai.vision.utils import download_images, verify_images
 
-
-IMAGE_DIR = Path('./cic_images')
-
-
-def main():
-    instructions = st.markdown('# Test')
-
-    st.sidebar.title("What to do next?")
-    app_mode = st.sidebar.selectbox("",
-        ["Show instructions", "Download images",
-         "Train the classifier", "Use/download the classifier",
-         "Show the source code"])
-    if app_mode == 'Show instructions':
-        st.sidebar.success('To continue select "Download images".')
-    elif app_mode == 'Download images':
-        instructions.empty()
-        download_data()
-    elif app_mode == 'Train the classifier':
-        instructions.empty()
-        train_classifier()
-    elif app_mode == 'Use/download the classifier':
-        instructions.empty()
-        run_classifier()
-    elif app_mode == 'Show the source code':
-        instructions.empty()
-        st.code(get_file_content_as_string('cc_image_classifier.py'))
-
-    #queries = []
-    #query_urls = get_urls(queries, num_pages, params)
+from .config import IMAGE_DIR
 
 
-def instructions():
-    #with open('input_labels.json', 'r') as j:
-    #    labels = json.load(j)
-
-    #st.markdown("### Pick the kinds of images you want to classify")
-    #classes = st.text_area(
-    #    labels['classes'],
-    #    value="dog\ncat\ngothic architecture").split('\n')
-    #st.write("Here's an example of valid input!")
-    #st.markdown((
-    #    "![classes_input_example](https://"
-    #    "raw.githubusercontent.com/warrenmo/"
-    #    "cc-image-classifier/master/class_input_example.jpg)"
-    #    ))
-
-    #st.markdown('### Pick the number of photos per class')
-    #num_photos_per_class = st.number_input(
-    #    labels['num_photos_per_class'],
-    #    min_value=1,
-    #    max_value=1000,
-    #    value=200
-    #    )
-    #return classes, num_photos_per_class
-    pass
+__all__ = ['DownloadImages']
 
 
-def download_data():
-    # TODO: break up this overloaded function
-    classes, num_images_per_class = [], 1
-    st.markdown("# Download images")
+class DownloadImages:
+    """
+    TODO: class doc
+    """
+    def __init__(self, license='CC0', image_dir=IMAGE_DIR):
+        self.classes = []
+        self.nipc = 1   # num images per class
+        self.num_pages = 1
+        self.page_size = 20
+        self.license = license
+        self.url_dict = {}
 
-    # TODO: handle empty lines
-    classes = st.text_area(
-        "Specify the images you wish to classify:",
-        value="dog\ncat\ngothic architecture"
-        )
-    classes = classes.split('\n')
-    if len(classes) < 2:
-        st.error("At least 2 classes must be given.")
-    per_class = st.number_input(
-        "Specify the number of images per class:",
-        min_value=1,
-        max_value=1000,
-        value=200
-        )
-    # TODO: check to see if 50 images is enough
-    # TODO: # of images varies with # of classes
-    if per_class < 50:
-        st.warning((
-            "Warning: expect unreliable performance "
-            "with fewer than 50 images per class"
-            ))
-    press = st.button("Submit & Download")
-    if press:
+        self.image_dir = image_dir
+        self.image_dir.mkdir(parents=True, exist_ok=True)
+
+    def download(self):
+        st.markdown("# Download images")
+        self._get_classes()
+        self._get_nipc()
+
+        press = st.button("Submit & Download")
+        if press:
+            self._show_classes_nipc()
+            self._get_ps_np()
+            self._get_urls()
+            self._download_urls()
+            self._verify_downloads()
+
+    def _get_classes(self):
+        raw_text = st.text_area(
+            "Specify the images you wish to classify:",
+            value="dog\ncat\ngothic architecture"
+            )
+        self.classes = [c for c in raw_text.split('\n') if c.strip()]
+        if len(self.classes) < 2:
+            st.error("At least 2 classes must be given.")
+
+    def _get_nipc(self):
+        self.nipc = st.number_input(
+            "Specify the number of images per class:",
+            min_value=1,
+            max_value=1000,
+            value=200
+            )
+        # TODO: check to see if 50 images is enough
+        # TODO: min # of images recommended varies with # of classes
+        if self.nipc < 50:
+            st.warning((
+                "Warning: expect unreliable performance "
+                "with fewer than 50 images per class"
+                ))
+
+    def _show_classes_nipc(self):
         # TODO: improve human readability of output
-        st.text(f"{'Classes:':<28}{', '.join(classes):>40}")
-        st.text(f"{'Number of images per class:':<28}{per_class:>40}")
+        st.text(f"{'Classes:':<28}{', '.join(self.classes):>40}")
+        st.text(f"{'Number of images per class:':<28}{self.nipc:>40}")
         st.text((
             f"{'Total number of images:':<28}"
-            f"{per_class*len(classes):>40}"
+            f"{self.nipc*len(self.classes):>40}"
             ))
 
-        page_size = min(500, per_class)
-        num_pages = ((num_images_per_class-1) // page_size) + 1
+    def _get_ps_np(self):
+        self.page_size = min(500, self.nipc)
+        self.num_pages = ((self.nipc-1) // self.page_size) + 1
 
-        url_dict = _get_urls(classes, num_pages, page_size=page_size)
-        _download_urls(url_dict)
-        _verify_downloads(url_dict)
+    def _get_urls(self):
+        for c in self.classes:
+            urls = []
+            for page in range(1, self.num_pages+1):
+                page_urls = self._get_urls_one_c(
+                    c, page=page, page_size=self.page_size,
+                    license=self.license
+                    )
+                urls.extend(page_urls)
+            self.url_dict[c] = urls
 
-
-def _get_urls(queries, num_pages, *, page_size, **kwargs):
-    query_urls = {}
-    for q in queries:
-        urls = []
-        for page in range(1, num_pages+1):
-            page_urls = _get_urls_one_q(
-                q, page=page, page_size=page_size, **kwargs
-                )
-            urls.extend(page_urls)
-        query_urls[q] = urls
-    return query_urls
-
-
-def _get_urls_one_q(q, *, page, page_size, license='CC0'):
-    params = {
-        'q': q,
-        'page': page,
-        'page_size': page_size,
-        'license': license
-        }
-    r = requests.get('https://api.creativecommons.engineering/v1/images',
-                     params=params)
-    return [res['url'] for res in r.json()['results']]
-
-
-def _download_urls(url_dict, image_dir=IMAGE_DIR):
-    image_dir.mkdir(exist_ok=True)
-    for c, urls in url_dict.items():
-        with st.spinner(f"Downloading images for: {c}"):
-            download_images(image_dir/c.replace(' ', '_'), urls=urls)
-        st.success(f"Success!")
-
-
-def _verify_downloads(url_dict, image_dir=IMAGE_DIR):
-    fails = _get_fails(url_dict, image_dir)
-    _delete_fails(fails)
-
-
-def _get_fails(url_dict, image_dir=IMAGE_DIR):
-    st.spinner("Verifying the images...")
-    if not image_dir.exists():
-        st.exception(
-            FileNotFoundError(f"No such directory: {image_dir.absolute()}")
+    @staticmethod
+    def _get_urls_one_c(q, *, page, page_size, license):
+        params = {
+            'q': q,
+            'page': page,
+            'page_size': page_size,
+            'license': license
+            }
+        r = requests.get(
+            'https://api.creativecommons.engineering/v1/images',
+            params=params
             )
-    fails = {
-        c: verify_images(Path.iterdir(image_dir/c)) for c in url_dict.keys()
-        }
-    return fails
+        return [res['url'] for res in r.json()['results']]
 
+    def _download_urls(self):
+        for c, urls in self.url_dict.items():
+            with st.spinner(f"Downloading '{c}' images..."):
+                download_images(
+                    self.image_dir/c.replace(' ', '_'), urls=urls
+                    )
+            st.success(f"Images of '{c}' downloaded successfully!")
 
-def _delete_fails(fails):
-    """
-    TODO: give users more info/control on which images to be deleted.
-    """
-    if sum(len(f) for f in fails.values()) == 0:
-        st.success("No images failed to open :sunglasses:")
-    else:
-        for c, f in fails.items():
-            if len(f) == 0:
-                continue
-            f.map(Path.unlink)
-            st.success(
-                f"Deleted {len(f)} images for class {c} that failed to open."
+    def _verify_downloads(self):
+        st.spinner('Verifying the images...')
+        fails = self._get_fails(self.url_dict, image_dir=self.image_dir)
+        self._delete_fails(fails)
+
+    @staticmethod
+    def _get_fails(url_dict, *, image_dir):
+        if not image_dir.exists():
+            st.exception(
+                FileNotFoundError(f"No such directory: {image_dir.absolute()}")
                 )
+        fails = {
+            c: verify_images(Path.iterdir(image_dir/c)) for c in url_dict.keys()
+            }
+        return fails
 
+    @staticmethod
+    def _delete_fails(fails):
+        """
+        TODO: give users more info/control on which images to be deleted.
+        """
+        if sum(len(f) for f in fails.values()) == 0:
+            st.success("No images failed to open :sunglasses:")
+        else:
+            for c, f in fails.items():
+                if len(f) == 0:
+                    continue
+                f.map(Path.unlink)
+                st.success(
+                    f"Deleted {len(f)} images for class {c} that failed to open."
+                    )
 
-def train_classifier():
-    pass
-
-
-def run_classifier():
-    pass
-
-
-@st.cache(show_spinner=False)
-def get_file_content_as_string(path):
-    """
-    Code copied from:
-    https://github.com/streamlit/demo-self-driving/blob/master/streamlit_app.py#L200
-    """
-    url = (
-        'https://raw.githubusercontent.com/warrenmo/'
-        'cc-image-classifier/main/' + path
-        )
-    response = urllib.request.urlopen(url)
-    return response.read().decode('utf-8')
-
-
-if __name__ == "__main__":
-    main()

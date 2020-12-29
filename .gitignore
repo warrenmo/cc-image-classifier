@@ -1,5 +1,5 @@
 # Image dataset directory
-cic_images/
+cdq_data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
