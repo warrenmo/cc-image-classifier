@@ -45,7 +45,8 @@ class DownloadImages:
             value="dog\ncat\ngothic architecture"
             )
         self.classes = [
-            c.replace(' ', '_') for c in raw_text.split('\n') if c.strip()
+            c.lower().replace(' ', '_')
+            for c in raw_text.split('\n') if c.strip()
             ]
         if len(self.classes) < 2:
             st.error("At least 2 classes must be given.")
