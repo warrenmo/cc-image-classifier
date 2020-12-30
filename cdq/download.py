@@ -113,9 +113,10 @@ class DownloadImages:
             st.success(f"Images of '{c}' downloaded successfully!")
 
     def _verify_downloads(self):
-        st.spinner('Verifying the images...')
-        fails = self._get_fails(self.url_dict, image_dir=self.image_dir)
-        self._delete_fails(fails)
+        with st.spinner('Verifying the images...'):
+            fails = self._get_fails(self.url_dict, image_dir=self.image_dir)
+            self._delete_fails(fails)
+        st.success("Verifying images: complete!")
 
     @staticmethod
     def _get_fails(url_dict, *, image_dir):
@@ -124,7 +125,8 @@ class DownloadImages:
                 FileNotFoundError(f"No such directory: {image_dir.absolute()}")
                 )
         fails = {
-            c: verify_images(Path.iterdir(image_dir/c)) for c in url_dict.keys()
+            c: verify_images(list(Path.iterdir(image_dir/c)))
+            for c in url_dict.keys()
             }
         return fails
 
@@ -141,6 +143,6 @@ class DownloadImages:
                     continue
                 f.map(Path.unlink)
                 st.success(
-                    f"Deleted {len(f)} images for class {c} that failed to open."
+                    f"Deleted {len(f)} images for class '{c}' that failed to open."
                     )
 
