@@ -2,7 +2,7 @@ import json
 import streamlit as st
 
 from cdq import (
-    DownloadImages, run_classifier, train_image_classifier,
+    DownloadImages, classify_images, train_image_classifier,
     app_mode_to_title, get_file_content_as_string
 )
 
@@ -13,7 +13,7 @@ def main():
     st.sidebar.title("What to do next?")
     app_mode = st.sidebar.selectbox("",
         ["Show instructions", "Download images",
-         "Train the classifier", "Use/download the classifier",
+         "Train the classifier", "Classify!",
          "Show the source code"])
     if app_mode == 'Show instructions':
         st.sidebar.success('To continue select "Download images".')
@@ -25,10 +25,10 @@ def main():
         instructions.empty()
         app_mode_to_title(app_mode)
         train_image_classifier()
-    elif app_mode == 'Use/download the classifier':
+    elif app_mode == 'Classify!':
         instructions.empty()
         app_mode_to_title(app_mode)
-        run_classifier()
+        classify_images()
     elif app_mode == 'Show the source code':
         instructions.empty()
         app_mode_to_title(app_mode)
