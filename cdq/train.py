@@ -12,6 +12,7 @@ __all__ = ['train_image_classifier']
 
 
 def train_image_classifier():
+    # TODO: time to break up this overloaded function as well
     class_paths = list(IMAGE_DIR.iterdir())
     classes = [cp.name for cp in class_paths]
     selected = st.multiselect(
@@ -22,11 +23,15 @@ def train_image_classifier():
         st.stop()
     press = st.button("Submit")
     if press:
-        preview_images(classes)
+        preview_images(selected)
         # TODO: let (advanced) users choose valid_pct, seed, batch size and
         #           transform options
         dls = ImageDataLoaders.from_folder(
             IMAGE_DIR, vocab=selected, valid_pct=0.2, seed=0,
             item_tfms=Resize(224)
             )
+        learn = cnn_learner(dls, resnet34, metrics=error_rate)
+        st.write(learn)
+        st.write(learn.fine_tune(1))
+
 
